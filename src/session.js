@@ -1,9 +1,9 @@
-export const MEASURE_KEYS = ['hr', 'suds', 'hrv', 'eeg', 'vibes']
+export const MEASURE_KEYS = ['hr', 'suds', 'stress', 'eeg', 'vibes']
 
 export const MEASURE_LABELS = {
   hr: 'HR',
   suds: 'SUDS',
-  hrv: 'HRV',
+  stress: 'Stress',
   eeg: 'EEG',
   vibes: 'Vibes AI',
 }
@@ -11,7 +11,7 @@ export const MEASURE_LABELS = {
 export const MEASURE_UNITS = {
   hr: 'bpm',
   suds: '0–10',
-  hrv: 'ms',
+  stress: 'Garmin 0–100',
   eeg: 'units',
   vibes: 'score',
 }
@@ -33,7 +33,7 @@ export const READING_LABELS = {
 }
 
 function emptyReading() {
-  return { hr: null, suds: null, hrv: null, eeg: null, vibes: null, t: null }
+  return { hr: null, suds: null, stress: null, eeg: null, vibes: null, t: null }
 }
 
 export function newSession({ participant = '', hyperventilationSeconds = 120, calmingTrack = '' } = {}) {
@@ -79,7 +79,7 @@ function recoveryDeltas(peak, end, baseline) {
   return {
     suds_drop: diff(peak.suds, end.suds), // expect positive = improvement
     hr_change: diff(peak.hr, end.hr), // peak typically higher; positive = HR fell
-    hrv_recovery_pct: pct(end.hrv, baseline.hrv), // % of resting HRV
+    stress_drop: diff(peak.stress, end.stress), // higher score = more stress; positive = improvement
     eeg_shift: diff(end.eeg, baseline.eeg), // signed
     vibes_shift: diff(end.vibes, peak.vibes), // signed
     elapsed_sec: elapsed(end.t, peak.t),
@@ -100,7 +100,7 @@ export function computeDeltas(session) {
   const beyond_natural = {
     suds_drop: gap(intervention.suds_drop, natural.suds_drop),
     hr_change: gap(intervention.hr_change, natural.hr_change),
-    hrv_recovery_pct: gap(intervention.hrv_recovery_pct, natural.hrv_recovery_pct),
+    stress_drop: gap(intervention.stress_drop, natural.stress_drop),
     eeg_shift: gap(intervention.eeg_shift, natural.eeg_shift),
     vibes_shift: gap(intervention.vibes_shift, natural.vibes_shift),
   }

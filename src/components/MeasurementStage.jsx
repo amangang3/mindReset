@@ -3,10 +3,10 @@ import { MEASURE_LABELS, MEASURE_UNITS } from '../session.js'
 
 const SUDS_VALUES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-const NUMERIC_FIELDS = ['hr', 'hrv', 'eeg', 'vibes']
+const NUMERIC_FIELDS = ['hr', 'stress', 'eeg', 'vibes']
 
 export default function MeasurementStage({ title, hint, ctaLabel = 'Continue', onSubmit }) {
-  const [values, setValues] = useState({ hr: '', suds: null, hrv: '', eeg: '', vibes: '' })
+  const [values, setValues] = useState({ hr: '', suds: null, stress: '', eeg: '', vibes: '' })
 
   function setField(k, v) {
     setValues((s) => ({ ...s, [k]: v }))
@@ -17,7 +17,7 @@ export default function MeasurementStage({ title, hint, ctaLabel = 'Continue', o
     const out = {
       hr: values.hr === '' ? null : Number(values.hr),
       suds: values.suds,
-      hrv: values.hrv === '' ? null : Number(values.hrv),
+      stress: values.stress === '' ? null : Number(values.stress),
       eeg: values.eeg === '' ? null : Number(values.eeg),
       vibes: values.vibes === '' ? null : Number(values.vibes),
     }

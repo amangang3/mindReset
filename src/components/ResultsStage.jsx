@@ -80,7 +80,7 @@ export default function ResultsStage({ session, onRestart }) {
         <ul>
           <li>SUDS drop: <strong>{signed(natural.suds_drop)}</strong></li>
           <li>HR change: <strong>{signed(natural.hr_change, ' bpm')}</strong></li>
-          <li>HRV vs rest: <strong>{natural.hrv_recovery_pct == null ? '—' : `${natural.hrv_recovery_pct}%`}</strong></li>
+          <li>Stress drop: <strong>{signed(natural.stress_drop)}</strong></li>
           <li>EEG shift (natural − rest): <strong>{signed(natural.eeg_shift)}</strong></li>
           <li>Vibes AI shift (natural − peak): <strong>{signed(natural.vibes_shift)}</strong></li>
           <li>Elapsed: <strong>{formatSeconds(natural.elapsed_sec)}</strong></li>
@@ -90,7 +90,7 @@ export default function ResultsStage({ session, onRestart }) {
         <ul>
           <li>SUDS drop: <strong>{signed(intervention.suds_drop)}</strong></li>
           <li>HR change: <strong>{signed(intervention.hr_change, ' bpm')}</strong></li>
-          <li>HRV vs rest: <strong>{intervention.hrv_recovery_pct == null ? '—' : `${intervention.hrv_recovery_pct}%`}</strong></li>
+          <li>Stress drop: <strong>{signed(intervention.stress_drop)}</strong></li>
           <li>EEG shift (post − rest): <strong>{signed(intervention.eeg_shift)}</strong></li>
           <li>Vibes AI shift (post − peak): <strong>{signed(intervention.vibes_shift)}</strong></li>
           <li>Elapsed: <strong>{formatSeconds(intervention.elapsed_sec)}</strong></li>
@@ -101,7 +101,7 @@ export default function ResultsStage({ session, onRestart }) {
         <ul>
           <li>SUDS drop gap: <strong>{signed(beyond_natural.suds_drop)}</strong></li>
           <li>HR change gap: <strong>{signed(beyond_natural.hr_change, ' bpm')}</strong></li>
-          <li>HRV gap: <strong>{beyond_natural.hrv_recovery_pct == null ? '—' : `${signed(beyond_natural.hrv_recovery_pct)}pp`}</strong></li>
+          <li>Stress drop gap: <strong>{signed(beyond_natural.stress_drop)}</strong></li>
           <li>EEG shift gap: <strong>{signed(beyond_natural.eeg_shift)}</strong></li>
           <li>Vibes AI shift gap: <strong>{signed(beyond_natural.vibes_shift)}</strong></li>
         </ul>
