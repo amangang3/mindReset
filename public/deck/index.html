@@ -403,6 +403,45 @@
     text-transform: uppercase;
     padding-top: 0.5rem;
   }
+
+  /* ============ print / PDF mode ============ */
+  @media print {
+    @page {
+      size: 11in 8.5in;   /* letter landscape — fits a 3-slide pitch deck nicely */
+      margin: 0;
+    }
+    html, body {
+      background: var(--bg) !important;
+      overflow: visible;
+      height: auto;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .deck { height: auto; overflow: visible; }
+    .nav { display: none !important; }
+    .slide {
+      position: relative !important;
+      inset: auto !important;
+      opacity: 1 !important;
+      transform: none !important;
+      pointer-events: auto !important;
+      width: 11in;
+      height: 8.5in;
+      page-break-after: always;
+      break-after: page;
+      padding: 0.6in 0.7in;
+      overflow: hidden;
+    }
+    .slide:last-child {
+      page-break-after: auto;
+      break-after: auto;
+    }
+    /* tighten so content fits a single printed page */
+    h1 { font-size: 2.2rem !important; }
+    h2 { font-size: 1.1rem !important; }
+    .results-grid { grid-template-columns: 1.1fr 0.9fr !important; }
+    .grid-2 { grid-template-columns: 1fr 1fr !important; }
+  }
 </style>
 </head>
 <body>
