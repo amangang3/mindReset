@@ -1,0 +1,107 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b1020;
+  --bg-2: #131a32;
+  --fg: #e6eaf5;
+  --muted: #8c95b3;
+  --accent: #7aa2ff;
+  --accent-2: #5b8def;
+  --danger: #ff8a8a;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  height: 100%;
+  background: radial-gradient(1200px 800px at 50% -10%, #1a2350 0%, var(--bg) 60%);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  padding: env(safe-area-inset-top) 1.25rem env(safe-area-inset-bottom);
+}
+
+.calm-btn {
+  width: min(70vw, 280px);
+  height: min(70vw, 280px);
+  border-radius: 50%;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: white;
+  background: radial-gradient(circle at 30% 30%, var(--accent) 0%, var(--accent-2) 60%, #2f4ea8 100%);
+  box-shadow: 0 18px 60px rgba(91, 141, 239, 0.45), inset 0 1px 0 rgba(255,255,255,0.25);
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 200ms ease, filter 200ms ease;
+}
+
+.calm-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 10px 30px rgba(91, 141, 239, 0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.calm-btn:disabled {
+  filter: grayscale(0.4) brightness(0.7);
+  cursor: default;
+}
+
+.cap-toggle {
+  display: inline-flex;
+  background: var(--bg-2);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 2px;
+}
+
+.cap-pill {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0.5rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.cap-pill.active {
+  background: var(--accent-2);
+  color: white;
+}
+
+.volume {
+  width: min(70vw, 280px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.volume-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.volume input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.error {
+  color: var(--danger);
+  max-width: 28ch;
+  text-align: center;
+  font-size: 0.9rem;
+}
