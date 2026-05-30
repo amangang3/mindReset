@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { fetchLibrary, audioUrl } from './library.js'
 import { Player } from './player.js'
 
+const ACTIVE_CATEGORY = 'calm'
+
 const CAP_OPTIONS = [
   { label: '15s', value: 15 },
   { label: '30s', value: 30 },
@@ -25,10 +27,11 @@ export default function App() {
     setLoading(true)
     setError(null)
     try {
-      const list = await fetchLibrary()
+      const all = await fetchLibrary()
+      const list = all.filter((f) => f.category === ACTIVE_CATEGORY)
       setFiles(list)
       if (list.length === 0) {
-        setError('No audio files yet. Drop some into public/audio/panic/ and rebuild.')
+        setError(`No audio files yet. Drop some into public/audio/${ACTIVE_CATEGORY}/ and rebuild.`)
       }
     } catch (e) {
       setError(e.message ?? String(e))
