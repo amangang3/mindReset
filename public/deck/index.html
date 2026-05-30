@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Anchor — Pitch Deck</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0b1020;
+    --bg-2: #131a32;
+    --bg-3: #1a2350;
+    --fg: #e6eaf5;
+    --muted: #8c95b3;
+    --border: #232b4a;
+    --accent: #7aa2ff;
+    --accent-2: #5b8def;
+    --good: #6ee7b7;
+    --warn: #ffb86b;
+    --danger: #ff8a8a;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: radial-gradient(1400px 900px at 50% -15%, var(--bg-3) 0%, var(--bg) 60%);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  /* slide deck container */
+  .deck {
+    position: relative;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+  }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: clamp(2rem, 5vh, 3rem) clamp(1.5rem, 5vw, 4rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    overflow-y: auto;
+    opacity: 0;
+    transform: translateX(40px);
+    transition: opacity 350ms ease, transform 350ms ease;
+    pointer-events: none;
+  }
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+  .slide.prev {
+    transform: translateX(-40px);
+  }
+
+  /* typography */
+  .eyebrow {
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    margin: 0;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+  h2 {
+    font-size: clamp(1.25rem, 2vw, 1.6rem);
+    margin: 0;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  h3 {
+    font-size: 0.85rem;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  p { margin: 0; line-height: 1.5; }
+  strong { color: var(--fg); }
+  .muted { color: var(--muted); }
+  .good { color: var(--good); }
+  .warn { color: var(--warn); }
+
+  /* slide chrome */
+  .slide-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .deck-name { color: var(--muted); font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  @media (max-width: 760px) {
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+
+  /* card */
+  .card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 0.9rem;
+    padding: 1rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .card.lift {
+    box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+  }
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+  .card-title .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .card ul, .card ol {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+  .card li + li { margin-top: 0.25rem; }
+  .card li strong { color: var(--fg); }
+
+  /* phase diagram */
+  .phase-flow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .phase {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 0.9rem;
+    padding: 1rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .phase.p1 { border-left: 3px solid var(--accent-2); }
+  .phase.p2 { border-left: 3px solid var(--good); }
+  .phase-title {
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .phase-headline { font-weight: 600; font-size: 1.05rem; }
+  .phase ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.25rem;
+    counter-reset: step;
+  }
+  .phase li {
+    color: var(--muted);
+    font-size: 0.92rem;
+    padding-left: 1.6rem;
+    position: relative;
+    counter-increment: step;
+  }
+  .phase li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 50%;
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    display: grid;
+    place-items: center;
+    font-size: 0.7rem;
+    color: var(--fg);
+  }
+  .phase-arrow {
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    font-size: 2rem;
+  }
+  @media (max-width: 760px) {
+    .phase-flow { grid-template-columns: 1fr; }
+    .phase-arrow { transform: rotate(90deg); }
+  }
+
+  /* measure pills */
+  .measures {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .measure-pill {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.85rem;
+    color: var(--fg);
+  }
+  .measure-pill .unit { color: var(--muted); margin-left: 0.4rem; font-size: 0.78rem; }
+
+  /* slide 2 — results */
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 1.25rem;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .results-grid { grid-template-columns: 1fr; }
+  }
+  .results-shot {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 0.9rem;
+    padding: 0.6rem;
+  }
+  .results-shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 0.6rem;
+  }
+  .headline-stat {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.85rem 1rem;
+    background: linear-gradient(135deg, rgba(110,231,183,0.12), rgba(91,141,239,0.08));
+    border: 1px solid rgba(110,231,183,0.4);
+    border-radius: 0.8rem;
+  }
+  .headline-stat .big {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--good);
+  }
+  .headline-stat .label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+  .stat-mini {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 0.7rem;
+    padding: 0.6rem 0.8rem;
+  }
+  .stat-mini .label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+  .stat-mini .val {
+    font-size: 1.1rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--fg);
+    font-weight: 600;
+  }
+
+  .caveat {
+    background: rgba(255,184,107,0.07);
+    border: 1px solid rgba(255,184,107,0.3);
+    border-radius: 0.7rem;
+    padding: 0.7rem 0.9rem;
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+  .caveat strong { color: var(--warn); }
+
+  /* nav */
+  .nav {
+    position: fixed;
+    bottom: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    background: rgba(11,16,32,0.75);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.35rem 0.5rem;
+    z-index: 10;
+  }
+  .nav button {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: var(--fg);
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: grid;
+    place-items: center;
+  }
+  .nav button:hover { background: var(--bg-2); }
+  .nav button:disabled { color: var(--muted); cursor: not-allowed; opacity: 0.4; }
+  .dots {
+    display: flex;
+    gap: 0.4rem;
+    padding: 0 0.25rem;
+  }
+  .dot-btn {
+    appearance: none;
+    background: var(--border);
+    border: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+    transition: background 200ms ease, transform 200ms ease;
+  }
+  .dot-btn.active {
+    background: var(--accent);
+    transform: scale(1.3);
+  }
+
+  /* per-slide layout helpers */
+  .slide-1 .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+  }
+  .slide-3 .roadmap-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: rgba(122,162,255,0.15);
+    color: var(--accent);
+    font-size: 0.85rem;
+    margin-right: 0.5rem;
+  }
+  .slide-3 .next-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .slide-3 .next-list li {
+    display: flex;
+    align-items: flex-start;
+    color: var(--muted);
+  }
+  .slide-3 .next-list strong { color: var(--fg); }
+
+  /* footer line */
+  .footer-meta {
+    margin-top: auto;
+    color: var(--muted);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding-top: 0.5rem;
+  }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- ============ SLIDE 1 ============ -->
+  <section class="slide slide-1 active" data-index="0">
+    <header class="slide-header">
+      <span class="deck-name">Anchor · EEG Wellness Hack</span>
+      <span class="muted">1 / 3</span>
+    </header>
+
+    <div class="hero">
+      <span class="eyebrow">What we did</span>
+      <h1>Did a 2-minute calming track actually calm someone down?</h1>
+      <h2>A within-subject A/B against the participant's own natural recovery.</h2>
+    </div>
+
+    <div class="phase-flow">
+      <div class="phase p1">
+        <span class="phase-title">Phase 1 — Baseline arm</span>
+        <span class="phase-headline">Recover with nothing.</span>
+        <ol>
+          <li>Rest baseline measurement</li>
+          <li>Hyperventilate for 2 minutes</li>
+          <li>Measure at peak</li>
+          <li>Sit quietly for 2 minutes — no intervention</li>
+          <li>Measure recovery (control)</li>
+        </ol>
+      </div>
+      <div class="phase-arrow">→</div>
+      <div class="phase p2">
+        <span class="phase-title">Phase 2 — Intervention arm</span>
+        <span class="phase-headline">Recover with the track.</span>
+        <ol>
+          <li>Hyperventilate for 2 minutes</li>
+          <li>Measure at peak</li>
+          <li>Play calming track + paced breath for 2 minutes</li>
+          <li>Measure post-intervention</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Measures captured</div>
+        <div class="measures">
+          <span class="measure-pill">HR <span class="unit">bpm</span></span>
+          <span class="measure-pill">SUDS <span class="unit">0–10</span></span>
+          <span class="measure-pill">HRV <span class="unit">ms</span></span>
+          <span class="measure-pill">EEG <span class="unit">AWEAR</span></span>
+          <span class="measure-pill">Vibes AI <span class="unit">score</span></span>
+        </div>
+        <p class="muted">Manual entry at each of five timepoints: rest, P1 peak, P1 natural, P2 peak, P2 post.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Why this design</div>
+        <ul>
+          <li><strong>Same person, same stressor.</strong> The participant is their own control.</li>
+          <li><strong>Phase 1 natural recovery</strong> is the floor: how much do they come back without help?</li>
+          <li><strong>Phase 2 intervention recovery</strong> measures the lift above that floor.</li>
+          <li>The gap between the two = the actual effect of the intervention.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-meta">
+      Track tested: <span class="good">cosmic-scapes-relaxing-layered-brown-noise</span> · Participant: AG
+    </div>
+  </section>
+
+  <!-- ============ SLIDE 2 ============ -->
+  <section class="slide slide-2" data-index="1">
+    <header class="slide-header">
+      <span class="deck-name">Anchor · Results</span>
+      <span class="muted">2 / 3</span>
+    </header>
+
+    <div>
+      <span class="eyebrow">Results &amp; interpretation</span>
+      <h1>Vibes AI score: <span class="good">+21 lift</span> from the intervention.</h1>
+      <h2>Calming tones in the 40 Hz / 528 Hz family produced a measurable score jump in 2 minutes — beyond what natural recovery delivered.</h2>
+    </div>
+
+    <div class="results-grid">
+      <div class="results-shot">
+        <img src="./Results.png" alt="Anchor results table" />
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap: 0.9rem;">
+        <div class="headline-stat">
+          <span class="label">Vibes AI · intervention beyond natural</span>
+          <span class="big">+21</span>
+          <span class="muted">P2 post (49) − P1 natural (28). Natural recovery did not move Vibes AI; the intervention did.</span>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-mini">
+            <div class="label">HR — both arms returned</div>
+            <div class="val">70 vs 72 bpm</div>
+          </div>
+          <div class="stat-mini">
+            <div class="label">HRV — both arms settled</div>
+            <div class="val">24 vs 28 ms</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="dot"></span>Reading the table</div>
+          <ul>
+            <li><strong>HR</strong> recovered fully under both conditions (~70 bpm). The body returned to baseline either way.</li>
+            <li><strong>HRV</strong> spiked at peak (mechanical artefact of forced breathing — respiratory sinus arrhythmia) then settled slightly below rest in both arms.</li>
+            <li><strong>Vibes AI</strong> is where the calming signal surfaces: <strong class="good">28 → 49</strong> after the intervention vs flat <strong>28 → 28</strong> in natural recovery.</li>
+          </ul>
+        </div>
+
+        <div class="caveat">
+          <strong>Honest caveats.</strong> n = 1, single session, fixed order (Phase 1 always first), operator entered values manually. Track family was layered brown noise — broader 40 Hz / 528 Hz frequencies are the research direction, not the exact stimulus tested here. SUDS and EEG were not captured this run.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SLIDE 3 ============ -->
+  <section class="slide slide-3" data-index="2">
+    <header class="slide-header">
+      <span class="deck-name">Anchor · What's next</span>
+      <span class="muted">3 / 3</span>
+    </header>
+
+    <div>
+      <span class="eyebrow">Implications &amp; next steps</span>
+      <h1>A pocket-deployable, measurable calming intervention.</h1>
+      <h2>If 2 minutes of sound can shift the Vibes AI score by 20+ points, the same loop can ride on any wearable signal.</h2>
+    </div>
+
+    <div class="grid-2">
+      <div class="card lift">
+        <div class="card-title"><span class="dot"></span>Implications</div>
+        <ul>
+          <li><strong>Short windows are enough.</strong> The lift came in 2 minutes — no full meditation required for a measurable effect.</li>
+          <li><strong>Within-subject A/B is the right unit.</strong> Comparing intervention against the same person's natural recovery filters out the "they calmed down anyway" critique.</li>
+          <li><strong>Vibes AI is sensitive.</strong> The score moved when HR and HRV had already returned — useful as an early-detection metric.</li>
+          <li><strong>The panic-button thesis holds.</strong> A 2-minute calming loop is feasible as a lock-screen interrupt for anxiety spikes.</li>
+        </ul>
+      </div>
+
+      <div class="card lift">
+        <div class="card-title"><span class="dot"></span>Production roadmap</div>
+        <ol>
+          <li><strong>Live EEG via AWEAR</strong> — replace manual transcription with streaming behind-ear electrodes.</li>
+          <li><strong>HRV from a chest strap</strong> — rolling RMSSD instead of single readings.</li>
+          <li><strong>Auto-trigger on baseline return</strong> — end the intervention when biometrics cross back, not on a fixed timer.</li>
+          <li><strong>Panic-button launch</strong> — lock-screen gesture opens the intervention and tracks recovery against a saved personal baseline.</li>
+          <li><strong>Vibes AI integration</strong> — the score is the headline metric; build the score-delta into the product loop.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Next study (to make this evidence, not just signal)</div>
+      <ul class="next-list">
+        <li><span class="roadmap-icon">n</span><span><strong>n &gt; 1, counterbalanced order.</strong> Half the participants run intervention arm first to wash out order effects.</span></li>
+        <li><span class="roadmap-icon">A</span><span><strong>Sham-track control.</strong> Match duration with neutral audio so the effect is isolated to the calming frequencies.</span></li>
+        <li><span class="roadmap-icon">Hz</span><span><strong>Stimulus comparison.</strong> Brown noise vs 40 Hz binaural vs 528 Hz solfeggio — find which frequency family carries the Vibes AI lift.</span></li>
+        <li><span class="roadmap-icon">↻</span><span><strong>Repeated sessions.</strong> Does the effect strengthen with practice, or habituate?</span></li>
+      </ul>
+    </div>
+
+    <div class="footer-meta">
+      Repo: <span class="good">github.com/amangang3/mindReset</span> · Plan: anchor_mvp_plan.md
+    </div>
+  </section>
+
+</div>
+
+<!-- nav -->
+<nav class="nav" aria-label="Slide navigation">
+  <button id="prev" aria-label="Previous slide">‹</button>
+  <div class="dots" role="tablist">
+    <button class="dot-btn active" data-go="0" aria-label="Slide 1"></button>
+    <button class="dot-btn" data-go="1" aria-label="Slide 2"></button>
+    <button class="dot-btn" data-go="2" aria-label="Slide 3"></button>
+  </div>
+  <button id="next" aria-label="Next slide">›</button>
+</nav>
+
+<script>
+(function() {
+  const slides = Array.from(document.querySelectorAll('.slide'))
+  const dots = Array.from(document.querySelectorAll('.dot-btn'))
+  const prevBtn = document.getElementById('prev')
+  const nextBtn = document.getElementById('next')
+  let current = 0
+
+  function go(i) {
+    if (i < 0 || i >= slides.length) return
+    slides.forEach((s, idx) => {
+      s.classList.remove('active', 'prev')
+      if (idx === i) s.classList.add('active')
+      else if (idx < i) s.classList.add('prev')
+    })
+    dots.forEach((d, idx) => d.classList.toggle('active', idx === i))
+    prevBtn.disabled = i === 0
+    nextBtn.disabled = i === slides.length - 1
+    current = i
+    history.replaceState(null, '', '#' + (i + 1))
+  }
+
+  prevBtn.addEventListener('click', () => go(current - 1))
+  nextBtn.addEventListener('click', () => go(current + 1))
+  dots.forEach((d) => d.addEventListener('click', () => go(Number(d.dataset.go))))
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(current + 1) }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(current - 1) }
+    else if (e.key === 'Home') go(0)
+    else if (e.key === 'End') go(slides.length - 1)
+  })
+
+  // initial slide from hash
+  const initial = Math.max(0, Math.min(slides.length - 1, parseInt(location.hash.slice(1), 10) - 1)) || 0
+  go(initial)
+})();
+</script>
+</body>
+</html>
