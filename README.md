@@ -1,12 +1,24 @@
-# mindReset
+# mindReset / Anchor
 
-One-tap calming sound player. Picks a random clip from `public/audio/` and plays it with a fade-out at 15 / 30 / 60 seconds (or full length).
+A biofeedback wellbeing MVP. Operator-driven session that walks a participant through **baseline → peak (hyperventilation) → optional natural recovery → intervention (calming track) → post**, with manual entry of five measures at each timepoint. Results screen shows per-measure deltas vs the natural-recovery control window, plus the raw session JSON.
+
+Built for the EEG Wellness Hack (AWEAR + Vibes AI, a16z Boston Tech Week). Full spec: [`anchor_mvp_plan.md`](./anchor_mvp_plan.md).
 
 Live: `https://amangang3.github.io/mindReset/`
 
-## Adding tracks
+## Measures (manual entry)
 
-Drop audio files into `public/audio/calm/` and commit. The app picks randomly from whatever's in there:
+| Measure | Unit | Source |
+|---|---|---|
+| HR | bpm | pulse count / phone HR app / device |
+| SUDS | 0–10 | participant self-report |
+| HRV | ms | AWEAR app, transcribed |
+| EEG score | units | AWEAR app, transcribed |
+| Vibes AI | score | Vibes AI app, transcribed |
+
+## Adding calming tracks
+
+Drop audio files into `public/audio/calm/` and commit:
 
 ```bash
 cp ~/Downloads/ocean.mp3 public/audio/calm/
@@ -15,11 +27,9 @@ git commit -m "add ocean track"
 git push
 ```
 
-The active category is `calm` (set by `ACTIVE_CATEGORY` in `src/App.jsx`). Other subfolders under `public/audio/` (e.g. `panic/`) are scanned into the manifest but ignored by the player. To switch the active pool, change `ACTIVE_CATEGORY`.
+The session setup screen exposes a picker over whatever's in `calm/`, defaulting to the first alphabetically. Other subfolders under `public/audio/` (e.g. `panic/`) are scanned into the manifest but ignored by the player. Switch the active pool by changing `ACTIVE_CATEGORY` in `src/App.jsx`.
 
-Supported extensions: `.mp3 .m4a .aac .wav .ogg .oga .flac .webm`. On push, the GitHub Actions workflow regenerates `public/audio/manifest.json` and deploys.
-
-Locally, `npm run dev` and `npm run build` regenerate the manifest automatically (`predev` / `prebuild` scripts).
+Supported extensions: `.mp3 .m4a .aac .wav .ogg .oga .flac .webm`.
 
 ## Local dev
 
@@ -28,34 +38,26 @@ npm install
 npm run dev
 ```
 
-App runs at `http://localhost:5173/mindReset/`.
+App at `http://localhost:5173/mindReset/`. The `predev` hook regenerates `public/audio/manifest.json` first.
 
 ## How it works
 
-- `public/audio/*` — audio files committed to the repo, served as static assets.
-- `scripts/build-manifest.mjs` — scans `public/audio/` and writes `manifest.json`. Runs automatically before `dev` and `build`.
-- `src/library.js` — fetches `manifest.json` at startup, builds same-origin URLs for `<audio>`.
-- `src/player.js` — one `HTMLAudioElement` routed through a Web Audio `GainNode`. At `cap - 2s` it ramps gain to 0 over 2s, then pauses at `cap`. Tapping the button mid-play fades the current clip and starts a new random one.
-- `src/App.jsx` — big button + 15/30/60/full toggle + volume slider.
+- `src/App.jsx` — stage state machine (`setup → baseline → induce → peak → natural? → intervention → post → results`).
+- `src/session.js` — session shape (matches the spec data model) + delta math.
+- `src/components/SetupStage.jsx` — participant, hyperventilation duration (20–60s), control-window toggle, track picker.
+- `src/components/MeasurementStage.jsx` — reusable form (4 number inputs + 0–10 SUDS row), submits a reading.
+- `src/components/CountdownStage.jsx` — reusable countdown ring. Used for hyperventilation, natural window, and intervention.
+- `src/components/ResultsStage.jsx` — comparison table, recovery deltas, natural-recovery deltas side-by-side, caveats, copy/download JSON.
+- `src/library.js` — fetches `public/audio/manifest.json`.
+- `src/player.js` — Web Audio fade-out player. The intervention stage plays at `cap = Infinity` so it runs full length until the operator stops it.
 
 ## Tweak knobs
 
-- Fade-out length: `FADE_OUT_SEC` in `src/player.js`.
-- Cap options / default cap: `CAP_OPTIONS` and `useState(30)` in `src/App.jsx`.
-- Allowed extensions: `allowed` set in `scripts/build-manifest.mjs`.
+- Active category: `ACTIVE_CATEGORY` in `src/App.jsx` (default `'calm'`).
+- Control-window duration: `CONTROL_WINDOW_SEC` in `src/App.jsx` (default `30`).
+- Intervention duration: `INTERVENTION_SEC` in `src/App.jsx` (default `4 * 60`).
+- Fade-out length on stop: `FADE_OUT_SEC` and `STOP_FADE_SEC` in `src/player.js`.
 
-## Large files
+## Deploy
 
-If you have tracks > ~25 MB, consider [Git LFS](https://git-lfs.com) so the repo doesn't bloat:
-
-```bash
-git lfs install
-git lfs track "public/audio/*.mp3" "public/audio/*.wav"
-git add .gitattributes
-```
-
-GitHub Pages serves LFS-tracked files normally — no extra config.
-
-## Deploy setup (one-time)
-
-In the repo on github.com: **Settings → Pages → Source: GitHub Actions**. After the first push to `main`, the workflow publishes to `https://amangang3.github.io/mindReset/`.
+In the repo: **Settings → Pages → Source: GitHub Actions**. Push to `main`; the workflow builds and publishes.
