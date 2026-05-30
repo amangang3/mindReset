@@ -10,7 +10,7 @@ import ResultsStage from './components/ResultsStage.jsx'
 
 const ACTIVE_CATEGORY = 'calm'
 const NATURAL_RECOVERY_SEC = 30
-const INTERVENTION_SEC = 4 * 60
+const INTERVENTION_SEC = 30
 
 // Stage keys map to a phase + a sub-step. Phase indicator pulls from this.
 const STAGES = {
@@ -82,7 +82,7 @@ export default function App() {
     const track = tracks.find((t) => t.file === session.calming_track) ?? tracks[0]
     if (!track) return
     try {
-      await playerRef.current.play(audioUrl(track), Infinity, 0.8)
+      await playerRef.current.play(audioUrl(track), INTERVENTION_SEC, 0.8)
     } catch (e) {
       console.error('playback failed', e)
     }
