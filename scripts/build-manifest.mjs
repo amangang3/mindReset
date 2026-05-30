@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readdirSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
+import { readdirSync, statSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import { dirname, extname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -12,11 +12,25 @@ if (!existsSync(audioDir)) {
   mkdirSync(audioDir, { recursive: true })
 }
 
-const files = readdirSync(audioDir)
-  .filter((name) => !name.startsWith('.') && name !== 'manifest.json')
-  .filter((name) => allowed.has(extname(name).toLowerCase()))
+const subdirs = readdirSync(audioDir)
+  .filter((name) => !name.startsWith('.'))
+  .filter((name) => statSync(join(audioDir, name)).isDirectory())
   .sort((a, b) => a.localeCompare(b))
-  .map((name) => ({ name: name.replace(extname(name), ''), file: name }))
+
+const files = []
+for (const sub of subdirs) {
+  const entries = readdirSync(join(audioDir, sub))
+    .filter((name) => !name.startsWith('.'))
+    .filter((name) => allowed.has(extname(name).toLowerCase()))
+    .sort((a, b) => a.localeCompare(b))
+  for (const name of entries) {
+    files.push({
+      name: name.replace(extname(name), ''),
+      file: `${sub}/${name}`,
+      category: sub,
+    })
+  }
+}
 
 writeFileSync(manifestPath, JSON.stringify({ files }, null, 2) + '\n')
-console.log(`[manifest] ${files.length} file(s) -> public/audio/manifest.json`)
+console.log(`[manifest] ${files.length} file(s) across ${subdirs.length} folder(s) -> public/audio/manifest.json`)

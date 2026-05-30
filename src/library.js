@@ -10,5 +10,6 @@ export async function fetchLibrary() {
 }
 
 export function audioUrl(file) {
-  return `${base}audio/${encodeURIComponent(file.file)}`
+  const path = file.file.split('/').map(encodeURIComponent).join('/')
+  return `${base}audio/${path}`
 }

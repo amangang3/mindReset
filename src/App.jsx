@@ -28,7 +28,7 @@ export default function App() {
       const list = await fetchLibrary()
       setFiles(list)
       if (list.length === 0) {
-        setError('No audio files yet. Drop some into public/audio/ and rebuild.')
+        setError('No audio files yet. Drop some into public/audio/panic/ and rebuild.')
       }
     } catch (e) {
       setError(e.message ?? String(e))

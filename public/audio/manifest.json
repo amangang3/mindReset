@@ -1,3 +1,24 @@
 {
-  "files": []
+  "files": [
+    {
+      "name": "11325622-police-siren-sound-effect-240674",
+      "file": "panic/11325622-police-siren-sound-effect-240674.mp3",
+      "category": "panic"
+    },
+    {
+      "name": "freesound_community-rising-shepard-tone-60sec-take-2-77465",
+      "file": "panic/freesound_community-rising-shepard-tone-60sec-take-2-77465.mp3",
+      "category": "panic"
+    },
+    {
+      "name": "freesound_community-shepard-tone-59283",
+      "file": "panic/freesound_community-shepard-tone-59283.mp3",
+      "category": "panic"
+    },
+    {
+      "name": "soundreality-civil-defense-siren-128262",
+      "file": "panic/soundreality-civil-defense-siren-128262.mp3",
+      "category": "panic"
+    }
+  ]
 }

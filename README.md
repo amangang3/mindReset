@@ -6,14 +6,16 @@ Live: `https://amangang3.github.io/mindReset/`
 
 ## Adding tracks
 
-Drop audio files into `public/audio/` and commit:
+Drop audio files into a category subfolder under `public/audio/` and commit. The active category is `panic/`:
 
 ```bash
-cp ~/Downloads/ocean.mp3 public/audio/
-git add public/audio/ocean.mp3
-git commit -m "add ocean track"
+cp ~/Downloads/siren.mp3 public/audio/panic/
+git add public/audio/panic/siren.mp3
+git commit -m "add siren"
 git push
 ```
+
+To add a new category later (e.g. `focus/`, `ground/`), just create the folder and drop files in — the manifest script scans every subfolder of `public/audio/`. Files sitting directly in `public/audio/` (no subfolder) are ignored.
 
 Supported extensions: `.mp3 .m4a .aac .wav .ogg .oga .flac .webm`. On push, the GitHub Actions workflow regenerates `public/audio/manifest.json` and deploys.
 
