@@ -2,7 +2,6 @@ import { useState } from 'react'
 
 export default function SetupStage({ tracks, onStart }) {
   const [participant, setParticipant] = useState('')
-  const [duration, setDuration] = useState(45)
   const [trackFile, setTrackFile] = useState(tracks[0]?.file ?? '')
 
   const canStart = tracks.length > 0 && trackFile
@@ -15,7 +14,6 @@ export default function SetupStage({ tracks, onStart }) {
         if (!canStart) return
         onStart({
           participant: participant.trim() || 'anonymous',
-          hyperventilationSeconds: duration,
           calmingTrack: trackFile,
         })
       }}
@@ -26,13 +24,15 @@ export default function SetupStage({ tracks, onStart }) {
       <ol className="phase-preview">
         <li>
           <strong>1. Baseline</strong>
-          <span>Rest → hyperventilate → natural recovery</span>
+          <span>Rest → hyperventilate (2 min) → natural recovery (2 min)</span>
         </li>
         <li>
           <strong>2. Intervention</strong>
-          <span>Hyperventilate → calming track + paced breath</span>
+          <span>Hyperventilate (2 min) → calming track + paced breath (2 min)</span>
         </li>
       </ol>
+
+      <p className="field-hint">Every timed step is 2 minutes. Keep participant seated; stop early if dizzy.</p>
 
       <label className="field">
         <span className="field-label">Participant</span>
@@ -42,21 +42,6 @@ export default function SetupStage({ tracks, onStart }) {
           onChange={(e) => setParticipant(e.target.value)}
           placeholder="initials or alias"
         />
-      </label>
-
-      <label className="field">
-        <span className="field-label">
-          Hyperventilation duration <strong>{duration}s</strong>
-        </span>
-        <input
-          type="range"
-          min={20}
-          max={60}
-          step={5}
-          value={duration}
-          onChange={(e) => setDuration(parseInt(e.target.value, 10))}
-        />
-        <span className="field-hint">Same duration used in both phases. Keep them seated; stop early if dizzy.</span>
       </label>
 
       <label className="field">

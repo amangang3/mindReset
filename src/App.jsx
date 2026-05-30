@@ -9,8 +9,7 @@ import CountdownStage from './components/CountdownStage.jsx'
 import ResultsStage from './components/ResultsStage.jsx'
 
 const ACTIVE_CATEGORY = 'calm'
-const NATURAL_RECOVERY_SEC = 30
-const INTERVENTION_SEC = 30
+const STEP_SEC = 2 * 60
 
 // Stage keys map to a phase + a sub-step. Phase indicator pulls from this.
 const STAGES = {
@@ -82,7 +81,7 @@ export default function App() {
     const track = tracks.find((t) => t.file === session.calming_track) ?? tracks[0]
     if (!track) return
     try {
-      await playerRef.current.play(audioUrl(track), INTERVENTION_SEC, 0.8)
+      await playerRef.current.play(audioUrl(track), STEP_SEC, 0.8)
     } catch (e) {
       console.error('playback failed', e)
     }
@@ -115,7 +114,7 @@ export default function App() {
       <CountdownStage
         title="Phase 1 · Hyperventilate"
         instructions="Fast, deep breathing while seated. Stop early if dizzy."
-        durationSec={session.hyperventilation_seconds}
+        durationSec={STEP_SEC}
         ctaWhileRunning="Stop early"
         ctaWhenDone="Record peak"
         onComplete={() => setStage('p1_peak')}
@@ -134,7 +133,7 @@ export default function App() {
       <CountdownStage
         title="Phase 1 · Natural recovery"
         instructions="30s of quiet normal breathing. No intervention — this is the control."
-        durationSec={NATURAL_RECOVERY_SEC}
+        durationSec={STEP_SEC}
         ctaWhileRunning="Skip"
         ctaWhenDone="Record"
         onComplete={() => setStage('p1_natural')}
@@ -154,7 +153,7 @@ export default function App() {
       <CountdownStage
         title="Phase 2 · Hyperventilate"
         instructions="Same protocol as Phase 1. Stop early if dizzy."
-        durationSec={session.hyperventilation_seconds}
+        durationSec={STEP_SEC}
         ctaWhileRunning="Stop early"
         ctaWhenDone="Record peak"
         onComplete={() => setStage('p2_peak')}
@@ -173,7 +172,7 @@ export default function App() {
       <CountdownStage
         title="Phase 2 · Intervention"
         instructions="Calming track + paced breathing. Stop early when ready."
-        durationSec={INTERVENTION_SEC}
+        durationSec={STEP_SEC}
         ctaWhileRunning="Stop & record"
         ctaWhenDone="Record post"
         onStart={startIntervention}

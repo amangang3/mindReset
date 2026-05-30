@@ -36,7 +36,7 @@ function emptyReading() {
   return { hr: null, suds: null, hrv: null, eeg: null, vibes: null, t: null }
 }
 
-export function newSession({ participant = '', hyperventilationSeconds = 45, calmingTrack = '' } = {}) {
+export function newSession({ participant = '', hyperventilationSeconds = 120, calmingTrack = '' } = {}) {
   return {
     session_id:
       typeof crypto !== 'undefined' && crypto.randomUUID
