@@ -16,13 +16,27 @@ export const MEASURE_UNITS = {
   vibes: 'score',
 }
 
-const STAGE_FIELDS = ['baseline', 'peak', 'natural', 'post']
+export const READING_KEYS = [
+  'baseline_rest',
+  'baseline_peak',
+  'baseline_natural',
+  'intervention_peak',
+  'intervention_post',
+]
+
+export const READING_LABELS = {
+  baseline_rest: 'Rest',
+  baseline_peak: 'P1 Peak',
+  baseline_natural: 'P1 Natural',
+  intervention_peak: 'P2 Peak',
+  intervention_post: 'P2 Post',
+}
 
 function emptyReading() {
   return { hr: null, suds: null, hrv: null, eeg: null, vibes: null, t: null }
 }
 
-export function newSession({ participant = '', hyperventilationSeconds = 45, controlWindow = true, calmingTrack = '' } = {}) {
+export function newSession({ participant = '', hyperventilationSeconds = 45, calmingTrack = '' } = {}) {
   return {
     session_id:
       typeof crypto !== 'undefined' && crypto.randomUUID
@@ -32,17 +46,16 @@ export function newSession({ participant = '', hyperventilationSeconds = 45, con
     timestamp: new Date().toISOString(),
     hyperventilation_seconds: hyperventilationSeconds,
     calming_track: calmingTrack,
-    control_window: controlWindow,
-    readings: Object.fromEntries(STAGE_FIELDS.map((k) => [k, emptyReading()])),
+    readings: Object.fromEntries(READING_KEYS.map((k) => [k, emptyReading()])),
   }
 }
 
-export function setReading(session, stage, values, t = Date.now()) {
+export function setReading(session, key, values, t = Date.now()) {
   return {
     ...session,
     readings: {
       ...session.readings,
-      [stage]: { ...session.readings[stage], ...values, t },
+      [key]: { ...session.readings[key], ...values, t },
     },
   }
 }
@@ -57,34 +70,42 @@ function pct(numer, denom) {
   return Number(((numer / denom) * 100).toFixed(1))
 }
 
-export function computeDeltas(session) {
-  const { baseline, peak, natural, post } = session.readings
+function elapsed(later, earlier) {
+  if (later == null || earlier == null) return null
+  return Math.round((later - earlier) / 1000)
+}
 
-  const recovery = {
-    suds_drop: diff(peak.suds, post.suds), // higher SUDS at peak, lower at post → positive number = improvement
-    hr_change: diff(peak.hr, post.hr), // peak typically higher → positive = improvement
-    hrv_recovery_pct: pct(post.hrv, baseline.hrv), // post as % of baseline
-    eeg_shift: diff(post.eeg, baseline.eeg), // signed shift from baseline
-    vibes_shift: diff(post.vibes, peak.vibes), // signed shift from peak
-    time_to_baseline_sec:
-      peak.t != null && post.t != null ? Math.round((post.t - peak.t) / 1000) : null,
+function recoveryDeltas(peak, end, baseline) {
+  return {
+    suds_drop: diff(peak.suds, end.suds), // expect positive = improvement
+    hr_change: diff(peak.hr, end.hr), // peak typically higher; positive = HR fell
+    hrv_recovery_pct: pct(end.hrv, baseline.hrv), // % of resting HRV
+    eeg_shift: diff(end.eeg, baseline.eeg), // signed
+    vibes_shift: diff(end.vibes, peak.vibes), // signed
+    elapsed_sec: elapsed(end.t, peak.t),
+  }
+}
+
+function gap(b, a) {
+  // gap = intervention delta − natural delta. For SUDS/HR this is "extra improvement".
+  if (b == null || a == null) return null
+  return Number((b - a).toFixed(2))
+}
+
+export function computeDeltas(session) {
+  const r = session.readings
+  const natural = recoveryDeltas(r.baseline_peak, r.baseline_natural, r.baseline_rest)
+  const intervention = recoveryDeltas(r.intervention_peak, r.intervention_post, r.baseline_rest)
+
+  const beyond_natural = {
+    suds_drop: gap(intervention.suds_drop, natural.suds_drop),
+    hr_change: gap(intervention.hr_change, natural.hr_change),
+    hrv_recovery_pct: gap(intervention.hrv_recovery_pct, natural.hrv_recovery_pct),
+    eeg_shift: gap(intervention.eeg_shift, natural.eeg_shift),
+    vibes_shift: gap(intervention.vibes_shift, natural.vibes_shift),
   }
 
-  const natural_recovery = session.control_window
-    ? {
-        suds_drop: diff(peak.suds, natural.suds),
-        hr_change: diff(peak.hr, natural.hr),
-        hrv_recovery_pct: pct(natural.hrv, baseline.hrv),
-        eeg_shift: diff(natural.eeg, baseline.eeg),
-        vibes_shift: diff(natural.vibes, peak.vibes),
-        elapsed_sec:
-          peak.t != null && natural.t != null
-            ? Math.round((natural.t - peak.t) / 1000)
-            : null,
-      }
-    : null
-
-  return { recovery, natural_recovery }
+  return { natural, intervention, beyond_natural }
 }
 
 export function formatSeconds(s) {

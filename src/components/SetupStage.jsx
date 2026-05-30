@@ -3,7 +3,6 @@ import { useState } from 'react'
 export default function SetupStage({ tracks, onStart }) {
   const [participant, setParticipant] = useState('')
   const [duration, setDuration] = useState(45)
-  const [controlWindow, setControlWindow] = useState(true)
   const [trackFile, setTrackFile] = useState(tracks[0]?.file ?? '')
 
   const canStart = tracks.length > 0 && trackFile
@@ -17,13 +16,23 @@ export default function SetupStage({ tracks, onStart }) {
         onStart({
           participant: participant.trim() || 'anonymous',
           hyperventilationSeconds: duration,
-          controlWindow,
           calmingTrack: trackFile,
         })
       }}
     >
       <h1>Anchor</h1>
-      <p className="subtitle">Spike → recover. Measure the gap.</p>
+      <p className="subtitle">Two phases. Same stressor. Recover naturally, then with the intervention.</p>
+
+      <ol className="phase-preview">
+        <li>
+          <strong>1. Baseline</strong>
+          <span>Rest → hyperventilate → natural recovery</span>
+        </li>
+        <li>
+          <strong>2. Intervention</strong>
+          <span>Hyperventilate → calming track + paced breath</span>
+        </li>
+      </ol>
 
       <label className="field">
         <span className="field-label">Participant</span>
@@ -47,23 +56,11 @@ export default function SetupStage({ tracks, onStart }) {
           value={duration}
           onChange={(e) => setDuration(parseInt(e.target.value, 10))}
         />
-        <span className="field-hint">Keep them seated. Stop early if dizzy.</span>
-      </label>
-
-      <label className="field checkbox-field">
-        <input
-          type="checkbox"
-          checked={controlWindow}
-          onChange={(e) => setControlWindow(e.target.checked)}
-        />
-        <span>
-          <strong>Control window</strong>
-          <span className="field-hint"> — 30s of natural recovery before the intervention</span>
-        </span>
+        <span className="field-hint">Same duration used in both phases. Keep them seated; stop early if dizzy.</span>
       </label>
 
       <label className="field">
-        <span className="field-label">Calming track</span>
+        <span className="field-label">Calming track (Phase 2)</span>
         <select value={trackFile} onChange={(e) => setTrackFile(e.target.value)} disabled={tracks.length === 0}>
           {tracks.length === 0 && <option value="">No tracks in public/audio/calm/</option>}
           {tracks.map((t) => (
@@ -75,7 +72,7 @@ export default function SetupStage({ tracks, onStart }) {
       </label>
 
       <button type="submit" className="primary-btn" disabled={!canStart}>
-        Start session
+        Start Phase 1
       </button>
     </form>
   )

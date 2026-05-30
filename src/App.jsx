@@ -9,18 +9,27 @@ import CountdownStage from './components/CountdownStage.jsx'
 import ResultsStage from './components/ResultsStage.jsx'
 
 const ACTIVE_CATEGORY = 'calm'
-const CONTROL_WINDOW_SEC = 30
-const INTERVENTION_SEC = 4 * 60 // 4 min
+const NATURAL_RECOVERY_SEC = 30
+const INTERVENTION_SEC = 4 * 60
 
-const STAGE_ORDER_BASE = [
-  { key: 'setup', label: 'Setup' },
-  { key: 'baseline', label: 'Baseline' },
-  { key: 'induce', label: 'Induce' },
-  { key: 'peak', label: 'Peak' },
-  { key: 'natural', label: 'Natural' },
-  { key: 'intervention', label: 'Intervention' },
-  { key: 'post', label: 'Post' },
-  { key: 'results', label: 'Results' },
+// Stage keys map to a phase + a sub-step. Phase indicator pulls from this.
+const STAGES = {
+  setup: { phase: null, sub: null },
+  p1_rest: { phase: 1, sub: 'Rest' },
+  p1_induce: { phase: 1, sub: 'Hyperventilate' },
+  p1_peak: { phase: 1, sub: 'Peak' },
+  p1_natural_wait: { phase: 1, sub: 'Natural recovery' },
+  p1_natural: { phase: 1, sub: 'Recovered' },
+  p2_induce: { phase: 2, sub: 'Hyperventilate' },
+  p2_peak: { phase: 2, sub: 'Peak' },
+  p2_intervention: { phase: 2, sub: 'Intervention' },
+  p2_post: { phase: 2, sub: 'Post' },
+  results: { phase: null, sub: null },
+}
+
+const PHASES = [
+  { key: 1, label: '1. Baseline' },
+  { key: 2, label: '2. Intervention' },
 ]
 
 export default function App() {
@@ -53,20 +62,14 @@ export default function App() {
     }
   }, [])
 
-  const stages = useMemo(
-    () => STAGE_ORDER_BASE.filter((s) => s.key !== 'natural' || session?.control_window),
-    [session]
-  )
-  const currentIndex = stages.findIndex((s) => s.key === stage)
-
   function handleStart(config) {
-    const s = newSession(config)
-    setSession(s)
-    setStage('baseline')
+    setSession(newSession(config))
+    setStage('p1_rest')
   }
 
-  function recordReading(stageKey, values) {
-    setSession((prev) => setReading(prev, stageKey, values))
+  function record(key, values, nextStage) {
+    setSession((prev) => setReading(prev, key, values))
+    setStage(nextStage)
   }
 
   function handleRestart() {
@@ -74,8 +77,6 @@ export default function App() {
     setSession(null)
     setStage('setup')
   }
-
-  // ----- intervention playback -----
 
   async function startIntervention() {
     const track = tracks.find((t) => t.file === session.calming_track) ?? tracks[0]
@@ -91,72 +92,86 @@ export default function App() {
     playerRef.current.stop().catch(() => {})
   }
 
-  // ----- screen routing -----
+  const phaseMeta = STAGES[stage]
+  const indicator = session && phaseMeta.phase != null && (
+    <StageIndicator phases={PHASES} currentPhase={phaseMeta.phase} subLabel={phaseMeta.sub} />
+  )
 
   let screen
   if (libraryLoading) {
     screen = <div className="stage stage-loading"><p>Loading…</p></div>
   } else if (stage === 'setup') {
     screen = <SetupStage tracks={tracks} onStart={handleStart} />
-  } else if (stage === 'baseline') {
+  } else if (stage === 'p1_rest') {
     screen = (
       <MeasurementStage
-        title="Baseline"
+        title="Phase 1 · Rest baseline"
         hint="Sit still 60–90s, normal breathing. Then record."
-        onSubmit={(v) => {
-          recordReading('baseline', v)
-          setStage('induce')
-        }}
+        onSubmit={(v) => record('baseline_rest', v, 'p1_induce')}
       />
     )
-  } else if (stage === 'induce') {
+  } else if (stage === 'p1_induce') {
     screen = (
       <CountdownStage
-        title="Hyperventilate"
+        title="Phase 1 · Hyperventilate"
         instructions="Fast, deep breathing while seated. Stop early if dizzy."
         durationSec={session.hyperventilation_seconds}
         ctaWhileRunning="Stop early"
         ctaWhenDone="Record peak"
-        onComplete={() => setStage('peak')}
+        onComplete={() => setStage('p1_peak')}
       />
     )
-  } else if (stage === 'peak') {
+  } else if (stage === 'p1_peak') {
     screen = (
       <MeasurementStage
-        title="Peak"
-        hint="Immediately after the breathing stops. Arousal decays fast."
-        onSubmit={(v) => {
-          recordReading('peak', v)
-          setStage(session.control_window ? 'natural-wait' : 'intervention-wait')
-        }}
+        title="Phase 1 · Peak"
+        hint="Immediately after the breathing stops."
+        onSubmit={(v) => record('baseline_peak', v, 'p1_natural_wait')}
       />
     )
-  } else if (stage === 'natural-wait') {
+  } else if (stage === 'p1_natural_wait') {
     screen = (
       <CountdownStage
-        title="Natural recovery"
-        instructions="30s of quiet normal breathing — no intervention. Then record."
-        durationSec={CONTROL_WINDOW_SEC}
+        title="Phase 1 · Natural recovery"
+        instructions="30s of quiet normal breathing. No intervention — this is the control."
+        durationSec={NATURAL_RECOVERY_SEC}
         ctaWhileRunning="Skip"
-        ctaWhenDone="Record natural"
-        onComplete={() => setStage('natural')}
+        ctaWhenDone="Record"
+        onComplete={() => setStage('p1_natural')}
       />
     )
-  } else if (stage === 'natural') {
+  } else if (stage === 'p1_natural') {
     screen = (
       <MeasurementStage
-        title="Natural"
-        hint="Recovery without intervention."
-        onSubmit={(v) => {
-          recordReading('natural', v)
-          setStage('intervention-wait')
-        }}
+        title="Phase 1 · After natural recovery"
+        hint="How far they came back on their own."
+        ctaLabel="Start Phase 2"
+        onSubmit={(v) => record('baseline_natural', v, 'p2_induce')}
       />
     )
-  } else if (stage === 'intervention-wait') {
+  } else if (stage === 'p2_induce') {
     screen = (
       <CountdownStage
-        title="Intervention"
+        title="Phase 2 · Hyperventilate"
+        instructions="Same protocol as Phase 1. Stop early if dizzy."
+        durationSec={session.hyperventilation_seconds}
+        ctaWhileRunning="Stop early"
+        ctaWhenDone="Record peak"
+        onComplete={() => setStage('p2_peak')}
+      />
+    )
+  } else if (stage === 'p2_peak') {
+    screen = (
+      <MeasurementStage
+        title="Phase 2 · Peak"
+        hint="Immediately after the breathing stops."
+        onSubmit={(v) => record('intervention_peak', v, 'p2_intervention')}
+      />
+    )
+  } else if (stage === 'p2_intervention') {
+    screen = (
+      <CountdownStage
+        title="Phase 2 · Intervention"
         instructions="Calming track + paced breathing. Stop early when ready."
         durationSec={INTERVENTION_SEC}
         ctaWhileRunning="Stop & record"
@@ -164,42 +179,30 @@ export default function App() {
         onStart={startIntervention}
         onStop={() => {
           stopIntervention()
-          setStage('post')
+          setStage('p2_post')
         }}
         onComplete={() => {
           stopIntervention()
-          setStage('post')
+          setStage('p2_post')
         }}
       />
     )
-  } else if (stage === 'post') {
+  } else if (stage === 'p2_post') {
     screen = (
       <MeasurementStage
-        title="Post"
-        hint="After the intervention. This is the recovery snapshot."
+        title="Phase 2 · Post-intervention"
+        hint="The recovery snapshot. Compare against Phase 1 natural."
         ctaLabel="See results"
-        onSubmit={(v) => {
-          recordReading('post', v)
-          setStage('results')
-        }}
+        onSubmit={(v) => record('intervention_post', v, 'results')}
       />
     )
   } else if (stage === 'results') {
     screen = <ResultsStage session={session} onRestart={handleRestart} />
   }
 
-  // map intermediate keys back to the visible stage for the indicator
-  const indicatorStageKey = stage.replace('-wait', '')
-  const indicatorIndex = stages.findIndex((s) => s.key === indicatorStageKey)
-
   return (
     <div className="app">
-      {session && (
-        <StageIndicator
-          stages={stages}
-          currentIndex={indicatorIndex >= 0 ? indicatorIndex : currentIndex}
-        />
-      )}
+      {indicator}
       {libraryError && <p className="error">{libraryError}</p>}
       {screen}
     </div>
